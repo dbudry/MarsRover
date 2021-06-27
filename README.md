@@ -6,4 +6,4 @@ This application is using MVC style application design even though I am not util
 
 Validation is handled via regex patterns during submission even though originally started it using data-annotations but because of adding in multiple rover submissions, I changed the logic and wished that I had started with my first design which was (React).
 
-Regrets, due to the amount of time, I did not get the chance to implment the logging I would have liked, Unit testing as well as better coordinate and movement conrtrol class. I also was not able to finish the database storage that I had originally planned on. 
+Regrets, due to the amount of time, I did not get the chance to implment the logging I would have liked, Unit testing as well as better coordinate and movement conrtrol class. I also was not able to finish the database storage that I had originally planned on.  In short with more time equals better product and I normally put a lot of hours into planning before implementation. 

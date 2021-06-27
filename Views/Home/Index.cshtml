@@ -1,0 +1,152 @@
+﻿@{
+	ViewData["Title"] = "Home Page";
+}
+
+<div class="container">
+	<div class="row">
+		<div class="col-7">
+			<form autocomplete="off" action="api/Rover">
+				<h3> Rover Movement Input </h3>
+				<div class="form-group">
+					<div>
+						<label>Grid Bounds</label>
+						<input id="gridbounds" type="text" class="form-control" placeholder="Example: 5 5" data-val-regex="^([0-9]+[/\s]+[0-9])$" data-val-msg="Please use two integers seperated by a space." value="5 5">
+					</div>
+					<span class="text-danger"></span>
+				</div>
+				<div id="RoverMovements">
+					<label>Rover Entry</label>
+					<div class="list-group">
+						<div class="list-group-item">
+							<div class="form-group">
+								<div>
+									<label>Location</label>
+									<input type="text" class="form-control" placeholder="Example: 3 1 E" data-val-regex="^([0-9]+[/\s]+[0-9]+[/\s]+[NESWnesw])$" data-val-msg="Please use two integers seperated by a space then followed by a space then direction (N,E,S,W)." value="3 1 E">
+								</div>
+								<span class="text-danger"></span>
+							</div>
+							<div class="form-group">
+								<div>
+									<label>Movement</label>
+									<input type="text" class="form-control" placeholder="Example: LMLMLMLMM" data-val-regex="^([LRMlrm]+)$" data-val-msg="Please provid direction (L or R) and movements (M) with no spaces." value="LMMRM">
+								</div>
+								<span class="text-danger"></span>
+							</div>
+						</div>
+					</div>
+					<button id="NewRover" type="button" class="btn btn-secondary  col-2 float-right mt-1">
+						New Rover
+					</button>
+				</div>
+				<br /><br />
+
+				<div class="form-group spacer-md">
+					<input type="submit" value="Submit" class="btn btn-primary" />
+				</div>
+
+			</form>
+		</div>
+		<div class="col-5">
+			<h3> Rover Destination Output</h3>
+			<div id="roveroutput">
+			<ul class="list-group"></ul>
+			</div>
+		</div>
+	</div>
+</div>
+
+@section Scripts{ 
+	<script type="text/javascript">
+		$(document).ready(function () {
+			// Set cache = false for all jquery ajax requests.
+			$.ajaxSetup({
+				cache: false,
+			});
+
+			$("form").submit(function (e) {
+				e.preventDefault();
+
+				$("#roveroutput .list-group").html(null);
+
+				// Validate
+				var valid = true;
+				$("form input[type='text']").each(function () {
+					var regexPattern = $(this).attr("data-val-regex");
+					var valMessage = $(this).attr("data-val-msg");
+					var validationTarget = $(this).parents(".form-group").find("span");
+
+					var regexTest = new RegExp(regexPattern);
+
+					if (!regexTest.test($(this).val())) {
+						$(validationTarget).text(valMessage).show();
+						valid = false;
+					} else {
+						$(validationTarget).text("").hide();
+					}
+				});
+
+				if (valid) {
+					var url = $(this).attr('action');
+
+					var RoverLocations = [];
+					$("#RoverMovements .list-group-item").each(function () {
+						var roverLocation = new Object();
+						$("input[type='text']", this).each(function (i) {
+							if (i == 0) {
+								roverLocation.roverBounds = $(this).val();
+							} else if (i == 1) {
+								roverLocation.roverMovement = $(this).val();
+							}
+						});
+						RoverLocations.push(roverLocation);
+					});
+
+					var model = {
+						gridBounds: $("#gridbounds").val(),
+						roverLocations: RoverLocations
+					};
+
+					$.ajax({
+						type: "POST",
+						url: url,
+						dataType: 'json',
+						contentType: "application/json; charset=utf-8",
+						data: JSON.stringify(model),
+						success: function (json) {
+							var data = json.data + '';
+							var result = data.split(',');
+							$.each(result, function (i, item) {
+								if (item.indexOf('null') !== -1) {
+									$("#roveroutput .list-group").append("<li class='list-group-item list-group-item-danger'>Invalid Entry</li>");
+								} else {
+									$("#roveroutput .list-group").append("<li class='list-group-item list-group-item-dark'>" + item + "</li>");
+								}
+							});
+	
+						}
+					});
+				}
+
+			});
+
+
+			$("button#NewRover").click(function () {
+				var targetContainer = $("#RoverMovements .list-group");
+				var targetClone = $(".list-group-item:first", targetContainer);
+
+				$(targetClone).clone().appendTo(targetContainer);
+
+				var targetItem = $(".list-group-item:last", targetContainer);
+				$("input", targetItem).each(function () {
+					$(this).val("");
+					var validationTarget = $(this).parents(".form-group").find("span");
+					$(validationTarget).text("").hide();
+				});
+
+			});
+
+
+		});
+
+	</script>
+}
